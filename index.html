@@ -27,7 +27,7 @@
         .controls-area input { background: #0d1117; border: 1px solid var(--border-color); padding: 6px 10px; border-radius: 4px; color: #fff; width: 100px; }
 
         /* 6个核心数据卡片 */
-        .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 16px; margin-bottom: 25px; }
+        .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 12px; margin-bottom: 25px; }
         .stat-card { background: var(--card-bg); border-radius: 8px; padding: 16px; border: 1px solid var(--border-color); position: relative; }
         .stat-card .label { color: var(--text-muted); font-size: 0.85rem; margin-bottom: 6px; font-weight: 500; }
         .stat-card .value { font-size: 1.8rem; font-weight: 700; }
@@ -78,46 +78,41 @@
         .cal-cell.empty { background: transparent; border-color: transparent; }
         
         /* ================================================ */
-        /* 【核心修复】移动端自适应调整 */
+        /* 【核心升级】防溢出、强制自适应缩放 */
         /* ================================================ */
         @media (max-width: 600px) {
-            body { padding: 10px; } /* 减小手机边距 */
-            
-            .header-top, .controls-area, .stats-grid { 
-                flex-direction: column; align-items: stretch; text-align: center; 
-            }
+            body { padding: 10px; }
+            .header-top, .controls-area, .stats-grid { flex-direction: column; align-items: stretch; text-align: center; }
             .controls-area { gap: 10px; }
-            
-            .stats-grid { 
-                grid-template-columns: 1fr; /* 强制卡片单列显示，解决挤不下的问题 */
-                gap: 12px; 
-            }
-            .stat-card .value { font-size: 1.5rem; }
+            .stats-grid { grid-template-columns: 1fr 1fr; gap: 10px; } /* 手机端卡片两列并排显示 */
+            .stat-card { padding: 12px; }
+            .stat-card .value { font-size: 1.4rem; }
+            .chart-inner-stats { grid-template-columns: 1fr 1fr; gap: 8px; }
+            .stat-mini .val { font-size: 1.1rem; }
+            .expand-btn { position: static; font-size: 0.7rem; padding: 3px 8px; }
 
-            .chart-inner-stats { 
-                grid-template-columns: 1fr; /* 图表内部NET、PEAK三项单列竖排 */
-                gap: 10px; 
-            }
-            .stat-mini .val { font-size: 1.2rem; }
-
-            .expand-btn { 
-                position: static; /* 全屏按钮在手机上不要绝对定位，放在右侧 */
-                font-size: 0.7rem; padding: 3px 8px;
-            }
-
-            /* 日历修复：压缩格子和文字 */
-            .calendar-grid { gap: 4px; }
-            .cal-cell { 
-                min-height: 44px; 
-                padding: 4px 2px;
+            /* 🔥 核心修复：日历格子超强自适应 */
+            .calendar-grid { gap: 3px; }
+            .cal-cell {
+                min-height: 38px; /* 调低高度 */
+                padding: 2px 0px; /* 缩小边距 */
                 border-radius: 4px;
+                overflow: hidden; /* 确保内容不溢出 */
+                white-space: nowrap; /* 强制不换行 */
             }
-            .cal-cell .day { font-size: 0.6rem; margin-bottom: 2px; }
-            .cal-cell .amount { font-size: 0.7rem; }
-            .cal-weekday { font-size: 0.6rem; }
-            .calendar-wrapper { padding: 15px; }
-            
-            #equityChart { height: 250px; } /* 手机图表稍微矮一点 */
+            .cal-cell .day {
+                font-size: 0.5rem; /* 日期字号极限缩小 */
+                margin-bottom: 1px;
+            }
+            .cal-cell .amount {
+                font-size: 0.55rem; /* 金额字号极限缩小 */
+                white-space: nowrap; /* 不换行 */
+                overflow: hidden;
+                text-overflow: ellipsis; /* 如果金额太长（比如 $-4444），显示为省略号 */
+                max-width: 90%; /* 确保最多只占格子的90%宽 */
+            }
+            .cal-weekday { font-size: 0.5rem; }
+            #equityChart { height: 200px; } /* 手机上再矮一点，给日历留出更大空间 */
         }
     </style>
 </head>
