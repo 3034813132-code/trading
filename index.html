@@ -23,7 +23,6 @@
         .controls-area { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; padding: 12px 0 12px 0; border-bottom: 1px solid var(--border-color); margin-bottom: 20px; }
         .controls-area input { background: #0d1117; border: 1px solid var(--border-color); padding: 6px 10px; border-radius: 4px; color: #fff; width: 90px; }
 
-        /* 数据卡片 (已去除英文) */
         .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 12px; margin-bottom: 25px; }
         .stat-card { background: var(--card-bg); border-radius: 8px; padding: 16px; border: 1px solid var(--border-color); position: relative; }
         .stat-card .label { color: var(--text-muted); font-size: 0.85rem; margin-bottom: 6px; font-weight: 500; }
@@ -36,7 +35,6 @@
         .text-green { color: var(--green) !important; }
         .text-red { color: var(--red) !important; }
 
-        /* 图表区 */
         .chart-container { position: relative; background: var(--card-bg); border-radius: 8px; border: 1px solid var(--border-color); padding: 20px; margin-bottom: 20px; transition: all 0.2s ease; }
         .chart-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; position: relative; }
         .chart-header h3 { font-size: 1.1rem; font-weight: 600; }
@@ -53,29 +51,30 @@
 
         .chart-footer { display: flex; justify-content: space-between; margin-top: 15px; border-top: 1px solid var(--border-color); padding-top: 15px; color: var(--text-muted); font-size: 0.9rem; }
 
-        /* 交易日历区 */
+        /* 日历区 */
         .calendar-wrapper { background: var(--card-bg); border-radius: 8px; border: 1px solid var(--border-color); padding: 20px; margin-bottom: 25px; }
         .calendar-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; flex-wrap: wrap; gap: 10px; }
         .calendar-nav { display: flex; align-items: center; gap: 15px; }
         .calendar-nav button { background: #21262d; border: 1px solid var(--border-color); color: #fff; border-radius: 4px; padding: 4px 10px; cursor: pointer; }
         .calendar-nav button:hover { background: #30363d; }
         .calendar-nav .month-title { font-size: 1.1rem; font-weight: 600; min-width: 100px; text-align: center; }
-        .calendar-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 2px; } /* 间距极限压缩 */
-        .cal-weekday { color: var(--text-muted); font-size: 0.6rem; text-align: center; margin-bottom: 4px; }
-        .cal-cell { background: #0d1117; border-radius: 4px; padding: 2px 1px; min-height: 28px; display: flex; flex-direction: column; align-items: center; justify-content: flex-start; border: 1px solid #21262d; position: relative; overflow: hidden; }
-        .cal-cell .day { font-size: 0.5rem; color: var(--text-muted); margin-top: 2px; }
+        
+        .calendar-grid { display: grid; grid-template-columns: repeat(7, 1fr); width: 100%; gap: 4px; }
+        .cal-weekday { color: var(--text-muted); font-size: 0.7rem; text-align: center; margin-bottom: 5px; }
+        
+        .cal-cell { background: #0d1117; border-radius: 4px; padding: 2px 1px; min-height: 34px; display: flex; flex-direction: column; align-items: center; justify-content: center; border: 1px solid #21262d; }
+        .cal-cell .day { font-size: 0.6rem; color: var(--text-muted); margin-top: 0px; }
         .cal-cell.green { background: rgba(46, 160, 67, 0.2); border-color: var(--green); }
         .cal-cell.red { background: rgba(248, 81, 73, 0.2); border-color: var(--red); }
         .cal-cell.empty { background: transparent; border-color: transparent; }
 
-        /* 金额右上角单位 */
-        .cal-cell .amount-wrap { width: 100%; height: 100%; display: flex; justify-content: center; align-items: center; position: relative; }
-        .cal-cell .currency { position: absolute; top: -2px; right: 1px; font-size: 0.35rem; opacity: 0.8; color: inherit; }
-        .cal-cell .number { font-size: 0.55rem; font-weight: 600; white-space: nowrap; }
-        .cal-cell .empty-sign { font-size: 0.4rem; color: var(--text-muted); }
+        /* 数字居中显示，已移除 $ */
+        .cal-cell .amount-wrap { width: 100%; height: 100%; display: flex; justify-content: center; align-items: center; }
+        .cal-cell .number { font-size: 0.65rem; font-weight: 600; white-space: nowrap; }
+        .cal-cell .empty-sign { font-size: 0.5rem; color: var(--text-muted); }
 
         /* ================================================ */
-        /* 【核心修复】手机端极限适配 */
+        /* 【核心修复】手机端舒展排版 */
         /* ================================================ */
         @media (max-width: 600px) {
             body { padding: 8px; }
@@ -83,7 +82,6 @@
             .header-top, .controls-area, .stats-grid { flex-direction: column; align-items: stretch; text-align: center; }
             .controls-area { gap: 8px; }
             
-            /* 卡片布局 */
             .stats-grid { grid-template-columns: 1fr 1fr; gap: 6px; }
             .stat-card { padding: 10px; }
             .stat-card .value { font-size: 1.2rem; }
@@ -94,16 +92,15 @@
             .stat-mini .label { font-size: 0.6rem; }
             .stat-mini .val { font-size: 1rem; }
 
-            /* 日历极限压缩 */
-            .calendar-grid { gap: 1px; }
-            .cal-cell { min-height: 26px; padding: 1px 0px; border-radius: 2px; }
-            .cal-cell .day { font-size: 0.4rem; margin-top: 1px; }
-            .cal-cell .number { font-size: 0.45rem; }
-            .cal-cell .currency { font-size: 0.3rem; top: -1px; right: 0px; }
-            .cal-weekday { font-size: 0.4rem; }
+            /* 手机日历舒展 */
+            .calendar-grid { gap: 3px; }
+            .cal-cell { min-height: 38px; padding: 2px 0px; border-radius: 3px; }
+            .cal-cell .day { font-size: 0.65rem; }
+            .cal-cell .number { font-size: 0.75rem; }
+            .cal-weekday { font-size: 0.65rem; }
             .chart-footer { font-size: 0.75rem; }
             
-            #equityChart { height: 180px; }
+            #equityChart { height: 200px; }
         }
     </style>
 </head>
@@ -208,8 +205,9 @@
         let globalDailyPLMap = {};
         let currentCalendarDate = new Date();
 
+        // 【修复】增加 left: 55 解决 25,000 被截断的问题
         myChart.setOption({
-            grid: { top: 25, bottom: 25, left: 40, right: 20 },
+            grid: { top: 25, bottom: 25, left: 55, right: 15 },
             xAxis: { 
                 type: 'category',
                 axisLabel: { color: '#8b949e', interval: (index, value) => { if(index === 0) return true; return value !== myChart.getModel().get('xAxis')[0].data[index - 1]; } },
@@ -323,8 +321,9 @@
                 const k = `${y}-${String(m+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
                 const h = globalDailyPLMap.hasOwnProperty(k), p = h ? globalDailyPLMap[k] : 0;
                 let c = 'cal-cell'; if(h) c += p>=0 ? ' green' : ' red'; else c += ' empty';
+                // 【核心修改】移除了 $ 符号，只显示数字
                 let con = `<div class="day">${d}</div>`;
-                if(h) con += `<div class="amount-wrap"><span class="currency">$</span><span class="number">${p>0?'+':''}${p.toFixed(0)}</span></div>`;
+                if(h) con += `<div class="amount-wrap"><span class="number">${p>0?'+':''}${p.toFixed(0)}</span></div>`;
                 else con += `<div class="amount-wrap"><span class="empty-sign">—</span></div>`;
                 html += `<div class="${c}">${con}</div>`;
             }
