@@ -35,21 +35,45 @@
         .text-green { color: var(--green) !important; }
         .text-red { color: var(--red) !important; }
 
-        .chart-container { position: relative; background: var(--card-bg); border-radius: 8px; border: 1px solid var(--border-color); padding: 20px; margin-bottom: 20px; transition: all 0.2s ease; }
-        .chart-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; position: relative; }
+        .chart-container { position: relative; background: var(--card-bg); border-radius: 8px; border: 1px solid var(--border-color); padding: 20px; margin-bottom: 20px; }
+        .chart-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
         .chart-header h3 { font-size: 1.1rem; font-weight: 600; }
         .expand-btn { position: absolute; right: 0; top: -5px; background: transparent; border: 1px solid var(--border-color); color: var(--text-muted); padding: 4px 10px; border-radius: 4px; cursor: pointer; font-size: 0.8rem; transition: 0.2s; }
         .expand-btn:hover { background: #30363d; color: #fff; }
-        .chart-container.fullscreen { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; z-index: 9999; background: var(--bg-dark); margin: 0; padding: 20px; border-radius: 0; border: none; display: flex; flex-direction: column; }
         #equityChart { width: 100%; height: 350px; }
-        .chart-container.fullscreen #equityChart { flex: 1; height: auto; }
 
         .chart-inner-stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 20px; }
         .stat-mini { display: flex; flex-direction: column; }
         .stat-mini .label { color: var(--text-muted); font-size: 0.8rem; margin-bottom: 4px; }
         .stat-mini .val { font-size: 1.2rem; font-weight: 700; }
-
         .chart-footer { display: flex; justify-content: space-between; margin-top: 15px; border-top: 1px solid var(--border-color); padding-top: 15px; color: var(--text-muted); font-size: 0.9rem; }
+
+        /* 全屏样式 */
+        .chart-container.fullscreen-native {
+            position: fixed; top: 0; left: 0;
+            width: 100vw; height: 100vh;
+            z-index: 9999; background: var(--bg-dark);
+            margin: 0; padding: 0 !important; border-radius: 0; border: none;
+        }
+        .chart-container.fullscreen-native .chart-header,
+        .chart-container.fullscreen-native .chart-inner-stats,
+        .chart-container.fullscreen-native .chart-footer { display: none; }
+        .chart-container.fullscreen-native #equityChart {
+            width: 100vw !important;
+            height: 100vh !important;
+        }
+        .chart-container.fullscreen-native #equityChart > div,
+        .chart-container.fullscreen-native #equityChart canvas {
+            width: 100vw !important;
+            height: 100vh !important;
+        }
+        .chart-container.fullscreen-native .expand-btn {
+            position: fixed; top: 20px; right: 20px; z-index: 100000;
+            background: rgba(0,0,0,0.6); border: 1px solid rgba(255,255,255,0.3);
+            color: #fff; padding: 5px 12px; border-radius: 15px; font-size: 0.8rem;
+            backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px);
+        }
+        .chart-container.fullscreen-native .expand-btn:hover { background: rgba(0,0,0,0.9); }
 
         /* 日历区 */
         .calendar-wrapper { background: var(--card-bg); border-radius: 8px; border: 1px solid var(--border-color); padding: 20px; margin-bottom: 25px; }
@@ -58,48 +82,35 @@
         .calendar-nav button { background: #21262d; border: 1px solid var(--border-color); color: #fff; border-radius: 4px; padding: 4px 10px; cursor: pointer; }
         .calendar-nav button:hover { background: #30363d; }
         .calendar-nav .month-title { font-size: 1.1rem; font-weight: 600; min-width: 100px; text-align: center; }
-        
         .calendar-grid { display: grid; grid-template-columns: repeat(7, 1fr); width: 100%; gap: 4px; }
         .cal-weekday { color: var(--text-muted); font-size: 0.7rem; text-align: center; margin-bottom: 5px; }
-        
         .cal-cell { background: #0d1117; border-radius: 4px; padding: 2px 1px; min-height: 34px; display: flex; flex-direction: column; align-items: center; justify-content: center; border: 1px solid #21262d; }
         .cal-cell .day { font-size: 0.6rem; color: var(--text-muted); margin-top: 0px; }
         .cal-cell.green { background: rgba(46, 160, 67, 0.2); border-color: var(--green); }
         .cal-cell.red { background: rgba(248, 81, 73, 0.2); border-color: var(--red); }
         .cal-cell.empty { background: transparent; border-color: transparent; }
-
-        /* 数字居中显示，已移除 $ */
         .cal-cell .amount-wrap { width: 100%; height: 100%; display: flex; justify-content: center; align-items: center; }
         .cal-cell .number { font-size: 0.65rem; font-weight: 600; white-space: nowrap; }
         .cal-cell .empty-sign { font-size: 0.5rem; color: var(--text-muted); }
 
-        /* ================================================ */
-        /* 【核心修复】手机端舒展排版 */
-        /* ================================================ */
         @media (max-width: 600px) {
             body { padding: 8px; }
             .greeting { font-size: 1rem; }
             .header-top, .controls-area, .stats-grid { flex-direction: column; align-items: stretch; text-align: center; }
             .controls-area { gap: 8px; }
-            
             .stats-grid { grid-template-columns: 1fr 1fr; gap: 6px; }
             .stat-card { padding: 10px; }
             .stat-card .value { font-size: 1.2rem; }
-            
             .chart-header h3 { font-size: 1rem; }
-            
             .chart-inner-stats { grid-template-columns: 1fr 1fr 1fr; gap: 4px; }
             .stat-mini .label { font-size: 0.6rem; }
             .stat-mini .val { font-size: 1rem; }
-
-            /* 手机日历舒展 */
             .calendar-grid { gap: 3px; }
             .cal-cell { min-height: 38px; padding: 2px 0px; border-radius: 3px; }
             .cal-cell .day { font-size: 0.65rem; }
             .cal-cell .number { font-size: 0.75rem; }
             .cal-weekday { font-size: 0.65rem; }
             .chart-footer { font-size: 0.75rem; }
-            
             #equityChart { height: 200px; }
         }
     </style>
@@ -118,7 +129,7 @@
             <button class="btn btn-primary" onclick="applySettingsAndRender()">🔄 应用重绘</button>
         </div>
 
-        <!-- 数据卡片 (纯中文) -->
+        <!-- 数据卡片 -->
         <div class="stats-grid" id="statsGrid">
             <div class="stat-card border-green">
                 <div class="label">总盈亏</div>
@@ -157,9 +168,9 @@
             <div class="chart-header">
                 <div>
                     <h3>资金曲线</h3>
-                    <div style="color: var(--text-muted); font-size: 0.7rem; margin-top: 4px;">单绿平滑线 + 面积渐变</div>
+                    <div style="color: var(--text-muted); font-size: 0.7rem; margin-top: 4px;">逐笔交易跟踪</div>
                 </div>
-                <button class="expand-btn" id="fullscreenToggle" onclick="toggleFullScreen()">⛶ 全屏</button>
+                <button class="expand-btn" id="fullscreenBtn" onclick="toggleFullScreen()">⛶ 全屏</button>
             </div>
             
             <div class="chart-inner-stats">
@@ -205,24 +216,79 @@
         let globalDailyPLMap = {};
         let currentCalendarDate = new Date();
 
-        // 【修复】增加 left: 55 解决 25,000 被截断的问题
+        // ==========================================
+        // 【极限尺寸锁定】锁定高度，不让它向下无限拉伸
+        // ==========================================
         myChart.setOption({
-            grid: { top: 25, bottom: 25, left: 55, right: 15 },
+            grid: { top: 25, bottom: 25, left: 55, right: 20 },
             xAxis: { 
                 type: 'category',
-                axisLabel: { color: '#8b949e', interval: (index, value) => { if(index === 0) return true; return value !== myChart.getModel().get('xAxis')[0].data[index - 1]; } },
+                axisLabel: { 
+                    color: '#8b949e',
+                    interval: (index, value) => {
+                        if(index === 0) return true;
+                        return value !== myChart.getModel().get('xAxis')[0].data[index - 1];
+                    }
+                },
                 splitLine: { show: false }
             },
             yAxis: { type: 'value', min: 0, splitLine: { lineStyle: { color: 'rgba(255,255,255,0.05)' } }, axisLabel: { color: '#8b949e' } },
             legend: { show: false },
             tooltip: {
-                trigger: 'axis', backgroundColor: 'rgba(22,27,34,0.95)', borderColor: '#30363d', textStyle: { color: '#f0f6fc' },
-                formatter: (p) => {
-                    let d = new Date(p[0].data[0]); let t = `${d.getMonth()+1}/${d.getDate()} ${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`;
-                    return `<div style="font-weight:bold;margin-bottom:4px;">${t}</div><div style="display:flex;justify-content:space-between;width:130px;"><span>当前资金</span><span style="color:#2ea043;font-weight:bold;">$${p[0].data[1].toFixed(2)}</span></div>`;
+                trigger: 'axis',
+                triggerOn: 'mousemove',
+                confine: false,
+                // 【新增】严格限制最大高度，绝不拉长！
+                extraCssText: 'width: 230px !important; min-width: 230px !important; height: auto !important; max-height: 140px !important; overflow: hidden !important; padding: 12px 16px !important; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.6); line-height: 1.5; white-space: normal; font-size: 13px; box-sizing: border-box;',
+                position: function (pos, params, el, elRect, size) {
+                    var obj = {top: pos[1] - 30};
+                    if (pos[0] + 250 < size.viewSize[0]) {
+                        obj.left = pos[0] + 20;
+                    } else {
+                        obj.right = size.viewSize[0] - pos[0] + 20;
+                    }
+                    return obj;
+                },
+                axisPointer: {
+                    type: 'cross',
+                    snap: true,
+                    label: { show: false },
+                    lineStyle: { color: '#8b949e', width: 1, type: 'dashed' }
+                },
+                backgroundColor: 'rgba(22,27,34,0.95)',
+                borderColor: '#30363d',
+                borderWidth: 1,
+                textStyle: { color: '#f0f6fc' },
+                formatter: function (params) {
+                    var p = params[0];
+                    if (!p || p.dataIndex === undefined) return '';
+                    
+                    var idx = p.dataIndex;
+                    
+                    // 数据兜底，防错
+                    var currentPL = parseFloat(globalSinglePLs[idx]) || 0;
+                    var sign = currentPL >= 0 ? '+' : '';
+                    var color = currentPL >= 0 ? '#2ea043' : '#f85149';
+                    
+                    var dateLabel = p.name || '未知';
+                    var balanceVal = parseFloat(p.data) || 0;
+
+                    return `<div style="text-align: left; width: 100%; box-sizing: border-box;">
+                        <div style="font-weight:bold;margin-bottom:6px;">${dateLabel} · 交易 #${idx + 1}</div>
+                        <div style="display:flex;justify-content:space-between;margin-bottom:4px;">
+                            <span style="color:${color};">这笔交易</span>
+                            <span style="font-weight:bold;color:${color};">${sign}$${currentPL.toFixed(2)}</span>
+                        </div>
+                        <div style="display:flex;justify-content:space-between;border-top:1px solid #30363d;padding-top:4px;">
+                            <span>累计值</span>
+                            <span style="color:#2ea043;font-weight:bold;">+$${balanceVal.toFixed(2)}</span>
+                        </div>
+                    </div>`;
                 }
             }
         });
+
+        let globalSinglePLs = [];
 
         window.onload = function() {
             fetch('data.csv')
@@ -247,18 +313,27 @@
 
             let totalPL=0, wins=0, losses=0, tWins=0, tLosses=0;
             let curBal=initialCap, maxBal=initialCap, maxProf=0, minDraw=0;
-            let xDat=[], yDat=[], dailyPL={};
+            let xAxisLabels = [], yAxisData = [];
+            let dailyPL={};
             let mD=null, xD=null;
+            globalSinglePLs = [];
 
             globalRawRows.filter(r => r[colDate] && r[colPL] !== '').sort((a,b) => new Date(a[colDate]) - new Date(b[colDate])).forEach(row => {
                 const pl = parseFloat(row[colPL]); if(isNaN(pl)) return;
+                
+                globalSinglePLs.push(pl);
+                
                 totalPL+=pl; curBal+=pl;
                 if(pl>0) {wins++; tWins+=pl;} else {losses++; tLosses+=Math.abs(pl);}
                 if(curBal>maxBal) maxBal=curBal;
                 let draw = curBal - maxBal; if(draw<minDraw) minDraw=draw;
                 let prof = curBal - initialCap; if(prof>maxProf) maxProf=prof;
                 const d = new Date(row[colDate]); if(!mD) mD=d; xD=d;
-                xDat.push(`${d.getMonth()+1}/${d.getDate()}`); yDat.push(curBal);
+                
+                let dateStr = `${d.getMonth()+1}/${d.getDate()}`;
+                xAxisLabels.push(dateStr);
+                yAxisData.push(curBal);
+
                 const key = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
                 if(!dailyPL[key]) dailyPL[key]=0; dailyPL[key]+=pl;
             });
@@ -291,23 +366,72 @@
             document.getElementById('chart_trades').innerText = total;
             if(mD) document.getElementById('chart_period').innerText = `${mD.getMonth()+1}/${mD.getDate()} – ${xD.getMonth()+1}/${xD.getDate()}`;
 
-            myChart.setOption({ xAxis: { data: xDat }, series: [{
-                type:'line', smooth:0.4, symbol:'none', lineStyle:{ width:2.5, color:'#2ea043' },
-                areaStyle:{ color: new echarts.graphic.LinearGradient(0,0,0,1, [{offset:0,color:'rgba(46,160,67,0.5)'},{offset:1,color:'rgba(46,160,67,0)'}]) },
-                data: yDat, markLine: { symbol:['none','none'], label: { formatter: `初始资金 $${initialCap}`, position:'insideEndTop', color:'#fff' }, data: [{ yAxis: initialCap }], lineStyle: { color:'#f0f6fc', type:'dashed', width:1.5 } }
-            }] });
+            myChart.setOption({ 
+                xAxis: { data: xAxisLabels },
+                series: [{
+                    type:'line', 
+                    smooth: 0,
+                    symbol: 'none', 
+                    lineStyle:{ width: 2.5, color: '#2ea043' },
+                    areaStyle:{ 
+                        color: new echarts.graphic.LinearGradient(0,0,0,1, [
+                            {offset:0,color:'rgba(46,160,67,0.5)'},
+                            {offset:1,color:'rgba(46,160,67,0)'}
+                        ]) 
+                    },
+                    data: yAxisData,
+                    markLine: { 
+                        symbol:['none','none'], 
+                        label: { formatter: `初始资金 $${initialCap}`, position:'insideEndTop', color:'#fff' }, 
+                        data: [{ yAxis: initialCap }], 
+                        lineStyle: { color:'#f0f6fc', type:'dashed', width:1.5 } 
+                    }
+                }]
+            });
 
             globalDailyPLMap = dailyPL;
             currentCalendarDate = new Date(Object.keys(globalDailyPLMap).sort()[0]);
             renderCalendar(currentCalendarDate);
         }
 
-        function toggleFullScreen() {
-            const c = document.getElementById('chartContainer'), b = document.getElementById('fullscreenToggle');
-            c.classList.toggle('fullscreen');
-            b.innerText = c.classList.contains('fullscreen') ? '✕ 退出' : '⛶ 全屏';
-            setTimeout(()=>myChart.resize(), 200);
+        async function toggleFullScreen() {
+            const container = document.getElementById('chartContainer');
+            const btn = document.getElementById('fullscreenBtn');
+
+            if (!document.fullscreenElement) {
+                try {
+                    await container.requestFullscreen();
+                    container.classList.add('fullscreen-native');
+                    btn.innerText = '✕ 退出';
+                    setTimeout(() => myChart.resize(), 400);
+
+                    try {
+                        if (screen.orientation && screen.orientation.lock) {
+                            await screen.orientation.lock('landscape');
+                        }
+                    } catch (e) { /* 忽略横屏错误 */ }
+                } catch (err) {
+                    alert("全屏请求被拒绝，请确保点击是由用户手势触发的。");
+                }
+            } else {
+                try {
+                    await document.exitFullscreen();
+                    container.classList.remove('fullscreen-native');
+                    btn.innerText = '⛶ 全屏';
+                    setTimeout(() => myChart.resize(), 300);
+                } catch (e) { /* 忽略退出错误 */ }
+            }
         }
+
+        document.addEventListener('fullscreenchange', () => {
+            const container = document.getElementById('chartContainer');
+            const btn = document.getElementById('fullscreenBtn');
+            if (!document.fullscreenElement && container.classList.contains('fullscreen-native')) {
+                container.classList.remove('fullscreen-native');
+                btn.innerText = '⛶ 全屏';
+                setTimeout(() => myChart.resize(), 300);
+            }
+        });
 
         function renderCalendar(dObj) {
             const y = dObj.getFullYear(), m = dObj.getMonth();
@@ -321,7 +445,6 @@
                 const k = `${y}-${String(m+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
                 const h = globalDailyPLMap.hasOwnProperty(k), p = h ? globalDailyPLMap[k] : 0;
                 let c = 'cal-cell'; if(h) c += p>=0 ? ' green' : ' red'; else c += ' empty';
-                // 【核心修改】移除了 $ 符号，只显示数字
                 let con = `<div class="day">${d}</div>`;
                 if(h) con += `<div class="amount-wrap"><span class="number">${p>0?'+':''}${p.toFixed(0)}</span></div>`;
                 else con += `<div class="amount-wrap"><span class="empty-sign">—</span></div>`;
