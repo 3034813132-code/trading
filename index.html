@@ -2,7 +2,7 @@
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
     <title>专业交易仪表盘</title>
     <script src="https://cdn.jsdelivr.net/npm/echarts@5.4.3/dist/echarts.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
@@ -12,7 +12,7 @@
             --text-main: #f0f6fc; --text-muted: #8b949e; --green: #2ea043; --red: #f85149;
         }
         * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { background-color: var(--bg-dark); color: var(--text-main); font-family: -apple-system, sans-serif; padding: 20px; }
+        body { background-color: var(--bg-dark); color: var(--text-main); font-family: -apple-system, sans-serif; padding: 15px; }
         .dashboard-container { max-width: 1200px; margin: 0 auto; }
 
         .header-top { display: flex; justify-content: space-between; align-items: center; background: var(--card-bg); padding: 15px 20px; border-radius: 12px; border: 1px solid var(--border-color); flex-wrap: wrap; gap: 15px; margin-bottom: 20px; }
@@ -26,6 +26,7 @@
         .controls-area { display: flex; align-items: center; gap: 15px; flex-wrap: wrap; padding: 15px 0 10px 0; border-bottom: 1px solid var(--border-color); margin-bottom: 20px; }
         .controls-area input { background: #0d1117; border: 1px solid var(--border-color); padding: 6px 10px; border-radius: 4px; color: #fff; width: 100px; }
 
+        /* 6个核心数据卡片 */
         .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 16px; margin-bottom: 25px; }
         .stat-card { background: var(--card-bg); border-radius: 8px; padding: 16px; border: 1px solid var(--border-color); position: relative; }
         .stat-card .label { color: var(--text-muted); font-size: 0.85rem; margin-bottom: 6px; font-weight: 500; }
@@ -38,6 +39,7 @@
         .text-green { color: var(--green) !important; }
         .text-red { color: var(--red) !important; }
 
+        /* 图表区 */
         .chart-container { position: relative; background: var(--card-bg); border-radius: 8px; border: 1px solid var(--border-color); padding: 20px; margin-bottom: 20px; transition: all 0.2s ease; }
         .chart-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; position: relative; }
         .chart-header h3 { font-size: 1.1rem; font-weight: 600; }
@@ -58,6 +60,7 @@
 
         .chart-footer { display: flex; justify-content: space-between; margin-top: 15px; border-top: 1px solid var(--border-color); padding-top: 15px; color: var(--text-muted); font-size: 0.9rem; }
 
+        /* 日历区 */
         .calendar-wrapper { background: var(--card-bg); border-radius: 8px; border: 1px solid var(--border-color); padding: 20px; margin-bottom: 25px; }
         .calendar-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 10px; }
         .calendar-nav { display: flex; align-items: center; gap: 15px; }
@@ -74,19 +77,55 @@
         .cal-cell.red .amount { color: var(--red); font-size: 0.95rem; font-weight: 600; }
         .cal-cell.empty { background: transparent; border-color: transparent; }
         
+        /* ================================================ */
+        /* 【核心修复】移动端自适应调整 */
+        /* ================================================ */
         @media (max-width: 600px) {
-            .header-top, .controls-area, .stats-grid { flex-direction: column; align-items: stretch; }
-            .chart-inner-stats { grid-template-columns: 1fr 1fr 1fr; }
-            .expand-btn { right: 0; top: 0; }
+            body { padding: 10px; } /* 减小手机边距 */
+            
+            .header-top, .controls-area, .stats-grid { 
+                flex-direction: column; align-items: stretch; text-align: center; 
+            }
+            .controls-area { gap: 10px; }
+            
+            .stats-grid { 
+                grid-template-columns: 1fr; /* 强制卡片单列显示，解决挤不下的问题 */
+                gap: 12px; 
+            }
+            .stat-card .value { font-size: 1.5rem; }
+
+            .chart-inner-stats { 
+                grid-template-columns: 1fr; /* 图表内部NET、PEAK三项单列竖排 */
+                gap: 10px; 
+            }
+            .stat-mini .val { font-size: 1.2rem; }
+
+            .expand-btn { 
+                position: static; /* 全屏按钮在手机上不要绝对定位，放在右侧 */
+                font-size: 0.7rem; padding: 3px 8px;
+            }
+
+            /* 日历修复：压缩格子和文字 */
+            .calendar-grid { gap: 4px; }
+            .cal-cell { 
+                min-height: 44px; 
+                padding: 4px 2px;
+                border-radius: 4px;
+            }
+            .cal-cell .day { font-size: 0.6rem; margin-bottom: 2px; }
+            .cal-cell .amount { font-size: 0.7rem; }
+            .cal-weekday { font-size: 0.6rem; }
+            .calendar-wrapper { padding: 15px; }
+            
+            #equityChart { height: 250px; } /* 手机图表稍微矮一点 */
         }
     </style>
 </head>
 <body>
     <div class="dashboard-container">
-        <!-- 顶部操作区 -->
         <div class="header-top">
-            <div class="greeting">专业交易仪表盘</div>
-            <button class="btn btn-outline" onclick="document.getElementById('csvInput').click()">📂 手动导入数据</button>
+            <div class="greeting">专业交易仪表盘</span></div>
+            <button class="btn btn-outline" onclick="document.getElementById('csvInput').click()">📂 手动导入</button>
             <input type="file" id="csvInput" accept=".csv" onchange="handleFileSelect(event)">
         </div>
 
@@ -219,35 +258,25 @@
             }
         });
 
-        // ==========================================
-        // 【新增】：页面加载时自动拉取 GitHub 上的 data.csv
-        // ==========================================
+        // 页面自动加载远程 data.csv
         window.onload = function() {
-            console.log("正在自动检测并加载远程 data.csv...");
             fetch('data.csv')
                 .then(response => {
-                    if (!response.ok) {
-                        throw new Error("未找到 data.csv，请点击手动导入。");
-                    }
+                    if (!response.ok) throw new Error("未找到 data.csv，请点击手动导入。");
                     return response.text();
                 })
                 .then(text => {
                     Papa.parse(text, {
-                        header: true,
-                        skipEmptyLines: true,
+                        header: true, skipEmptyLines: true,
                         complete: function(results) {
-                            console.log("✅ 远程 data.csv 自动加载成功！");
                             globalRawRows = results.data;
                             applySettingsAndRender();
                         }
                     });
                 })
-                .catch(err => {
-                    console.log("⚠️ " + err.message);
-                });
+                .catch(err => console.log("⚠️ " + err.message));
         };
 
-        // 手动导入接口
         function handleFileSelect(event) {
             const file = event.target.files[0];
             if (!file) return;
@@ -270,7 +299,7 @@
             if(!colDate || !colPL) { alert("未找到日期或盈亏列"); return; }
 
             let totalPL = 0, wins = 0, losses = 0, totalWinsSum = 0, totalLossesSum = 0;
-            let currentBalance = initialCap, maxBalance = initialCap, minDrawdown = 0;
+            let currentBalance = initialCap, maxBalance = initialCap, maxProfit = 0, minDrawdown = 0;
             let xAxisData = [], yAxisData = [];
             let dailyPLMap = {};
             let minDate = null, maxDate = null;
@@ -287,6 +316,8 @@
                 if(currentBalance > maxBalance) maxBalance = currentBalance;
                 let drawdown = currentBalance - maxBalance;
                 if(drawdown < minDrawdown) minDrawdown = drawdown;
+                let profit = currentBalance - initialCap;
+                if(profit > maxProfit) maxProfit = profit;
 
                 const dateObj = new Date(row[colDate]);
                 if(!minDate) minDate = dateObj; maxDate = dateObj;
@@ -327,7 +358,7 @@
             document.getElementById('card_sharpe').innerText = sharpeRatio.toFixed(2);
 
             document.getElementById('stat_net').innerText = totalPL >= 0 ? `+${totalPL.toFixed(2)}` : `${totalPL.toFixed(2)}`;
-            document.getElementById('stat_peak').innerText = `$${maxBalance.toFixed(2)}`;
+            document.getElementById('stat_peak').innerText = `$${maxProfit.toFixed(2)}`;
             document.getElementById('stat_dip').innerText = `$${minDrawdown.toFixed(2)}`;
 
             document.getElementById('chart_trades').innerText = totalTrades;
