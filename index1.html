@@ -1,0 +1,403 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>专业交易仪表盘</title>
+    <script src="https://cdn.jsdelivr.net/npm/echarts@5.4.3/dist/echarts.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
+    <style>
+        :root {
+            --bg-dark: #0d1117; --card-bg: #161b22; --border-color: #30363d;
+            --text-main: #f0f6fc; --text-muted: #8b949e; --green: #2ea043; --red: #f85149;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { background-color: var(--bg-dark); color: var(--text-main); font-family: -apple-system, sans-serif; padding: 20px; }
+        .dashboard-container { max-width: 1200px; margin: 0 auto; }
+
+        .header-top { display: flex; justify-content: space-between; align-items: center; background: var(--card-bg); padding: 15px 20px; border-radius: 12px; border: 1px solid var(--border-color); flex-wrap: wrap; gap: 15px; margin-bottom: 20px; }
+        .greeting { font-size: 1.2rem; font-weight: 600; }
+        #csvInput { display: none; }
+        .btn { background: #21262d; border: 1px solid var(--border-color); padding: 8px 16px; border-radius: 6px; color: #fff; cursor: pointer; transition: 0.2s; }
+        .btn-primary { background: #238636; border-color: #2ea043; }
+        .btn-outline { background: transparent; }
+        .btn-outline:hover { background: #21262d; }
+
+        .controls-area { display: flex; align-items: center; gap: 15px; flex-wrap: wrap; padding: 15px 0 10px 0; border-bottom: 1px solid var(--border-color); margin-bottom: 20px; }
+        .controls-area input { background: #0d1117; border: 1px solid var(--border-color); padding: 6px 10px; border-radius: 4px; color: #fff; width: 100px; }
+
+        .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 16px; margin-bottom: 25px; }
+        .stat-card { background: var(--card-bg); border-radius: 8px; padding: 16px; border: 1px solid var(--border-color); position: relative; }
+        .stat-card .label { color: var(--text-muted); font-size: 0.85rem; margin-bottom: 6px; font-weight: 500; }
+        .stat-card .value { font-size: 1.8rem; font-weight: 700; }
+        .stat-card .sub { font-size: 0.8rem; color: var(--text-muted); margin-top: 4px; }
+        .stat-card::before { content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 4px; border-top-left-radius: 8px; border-bottom-left-radius: 8px; }
+        .border-green::before { background: var(--green); }
+        .border-red::before { background: var(--red); }
+        .border-neutral::before { background: var(--text-muted); }
+        .text-green { color: var(--green) !important; }
+        .text-red { color: var(--red) !important; }
+
+        .chart-container { position: relative; background: var(--card-bg); border-radius: 8px; border: 1px solid var(--border-color); padding: 20px; margin-bottom: 20px; transition: all 0.2s ease; }
+        .chart-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; position: relative; }
+        .chart-header h3 { font-size: 1.1rem; font-weight: 600; }
+        
+        .expand-btn { position: absolute; right: 0; top: -5px; background: transparent; border: 1px solid var(--border-color); color: var(--text-muted); padding: 4px 12px; border-radius: 4px; cursor: pointer; font-size: 0.8rem; transition: 0.2s; }
+        .expand-btn:hover { background: #30363d; color: #fff; }
+        
+        .chart-container.fullscreen { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; z-index: 9999; background: var(--bg-dark); margin: 0; padding: 30px; border-radius: 0; border: none; display: flex; flex-direction: column; }
+        .chart-container.fullscreen .chart-inner-stats { margin-bottom: 20px; }
+        .chart-container.fullscreen .chart-header { margin-top: 0; }
+        #equityChart { width: 100%; height: 350px; }
+        .chart-container.fullscreen #equityChart { flex: 1; height: auto; }
+
+        .chart-inner-stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-bottom: 20px; }
+        .stat-mini { display: flex; flex-direction: column; }
+        .stat-mini .label { color: var(--text-muted); font-size: 0.8rem; margin-bottom: 4px; }
+        .stat-mini .val { font-size: 1.3rem; font-weight: 700; }
+
+        .chart-footer { display: flex; justify-content: space-between; margin-top: 15px; border-top: 1px solid var(--border-color); padding-top: 15px; color: var(--text-muted); font-size: 0.9rem; }
+
+        .calendar-wrapper { background: var(--card-bg); border-radius: 8px; border: 1px solid var(--border-color); padding: 20px; margin-bottom: 25px; }
+        .calendar-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 10px; }
+        .calendar-nav { display: flex; align-items: center; gap: 15px; }
+        .calendar-nav button { background: #21262d; border: 1px solid var(--border-color); color: #fff; border-radius: 4px; padding: 4px 12px; cursor: pointer; }
+        .calendar-nav button:hover { background: #30363d; }
+        .calendar-nav .month-title { font-size: 1.1rem; font-weight: 600; min-width: 120px; text-align: center; }
+        .calendar-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 8px; }
+        .cal-weekday { color: var(--text-muted); font-size: 0.8rem; text-align: center; margin-bottom: 8px; }
+        .cal-cell { background: #0d1117; border-radius: 6px; padding: 12px 6px; min-height: 65px; display: flex; flex-direction: column; align-items: center; justify-content: center; border: 1px solid #21262d; }
+        .cal-cell .day { font-size: 0.85rem; color: var(--text-muted); margin-bottom: 4px; }
+        .cal-cell.green { background: rgba(46, 160, 67, 0.2); border-color: var(--green); }
+        .cal-cell.green .amount { color: var(--green); font-size: 0.95rem; font-weight: 600; }
+        .cal-cell.red { background: rgba(248, 81, 73, 0.2); border-color: var(--red); }
+        .cal-cell.red .amount { color: var(--red); font-size: 0.95rem; font-weight: 600; }
+        .cal-cell.empty { background: transparent; border-color: transparent; }
+        
+        @media (max-width: 600px) {
+            .header-top, .controls-area, .stats-grid { flex-direction: column; align-items: stretch; }
+            .chart-inner-stats { grid-template-columns: 1fr 1fr 1fr; }
+            .expand-btn { right: 0; top: 0; }
+        }
+    </style>
+</head>
+<body>
+    <div class="dashboard-container">
+        <!-- 顶部操作区 -->
+        <div class="header-top">
+            <div class="greeting">专业交易仪表盘</div>
+            <button class="btn btn-outline" onclick="document.getElementById('csvInput').click()">📂 手动导入数据</button>
+            <input type="file" id="csvInput" accept=".csv" onchange="handleFileSelect(event)">
+        </div>
+
+        <div class="controls-area">
+            <label for="initCapital">初始资金 ($) :</label>
+            <input type="number" id="initCapital" value="10000">
+            <button class="btn btn-primary" onclick="applySettingsAndRender()">🔄 应用重绘</button>
+        </div>
+
+        <!-- 6个核心数据卡片 -->
+        <div class="stats-grid" id="statsGrid">
+            <div class="stat-card border-green">
+                <div class="label">Total P&L 总盈亏</div>
+                <div class="value text-green" id="card_totalPL">+$0.00</div>
+                <div class="sub" id="card_balance">当前资金: $0.00</div>
+            </div>
+            <div class="stat-card border-red">
+                <div class="label">Win Rate 胜率</div>
+                <div class="value text-red" id="card_winRate">0%</div>
+                <div class="sub" id="card_winLose">0盈 / 0亏</div>
+            </div>
+            <div class="stat-card border-neutral">
+                <div class="label">Total Trades 总交易</div>
+                <div class="value" id="card_totalTrades">0</div>
+                <div class="sub" id="card_days">共 0 笔</div>
+            </div>
+            <div class="stat-card border-green">
+                <div class="label">Profit Factor 盈利因子</div>
+                <div class="value text-green" id="card_profitFactor">0.00x</div>
+                <div class="sub" id="card_perTrade">平均盈亏 $0.00</div>
+            </div>
+            <div class="stat-card border-green">
+                <div class="label">Risk/Reward 盈亏比</div>
+                <div class="value text-green" id="card_riskReward">0:1</div>
+                <div class="sub">平均盈利 / 平均亏损</div>
+            </div>
+            <div class="stat-card border-green">
+                <div class="label">Sharpe Ratio 夏普比率</div>
+                <div class="value text-green" id="card_sharpe">0.00</div>
+                <div class="sub">年化风险调整后收益</div>
+            </div>
+        </div>
+
+        <!-- 图表区 -->
+        <div class="chart-container" id="chartContainer">
+            <div class="chart-header">
+                <div>
+                    <h3>Equity Curve 资金曲线</h3>
+                    <div style="color: var(--text-muted); font-size: 0.8rem; margin-top: 4px;">单绿平滑线 + 面积渐变</div>
+                </div>
+                <button class="expand-btn" id="fullscreenToggle" onclick="toggleFullScreen()">⛶ 全屏放大</button>
+            </div>
+            
+            <div class="chart-inner-stats">
+                <div class="stat-mini">
+                    <span class="label">NET 净值</span>
+                    <span class="val text-green" id="stat_net">+$0.00</span>
+                </div>
+                <div class="stat-mini">
+                    <span class="label">PEAK 峰值</span>
+                    <span class="val text-green" id="stat_peak">$0.00</span>
+                </div>
+                <div class="stat-mini">
+                    <span class="label">DEEPEST DIP 最大回撤</span>
+                    <span class="val text-red" id="stat_dip">$0.00</span>
+                </div>
+            </div>
+
+            <div id="equityChart"></div>
+            
+            <div class="chart-footer">
+                <div>统计时间 <br> <span id="chart_period" style="color:var(--text-main); font-weight: bold;">等待导入...</span></div>
+                <div style="text-align: right;">总交易笔数 <br> <span id="chart_trades" style="color:var(--text-main); font-weight: bold;">0</span></div>
+            </div>
+        </div>
+
+        <!-- 日历区 -->
+        <div class="calendar-wrapper">
+            <div class="calendar-header">
+                <h3>Trading Calendar 交易日历</h3>
+                <div class="calendar-nav">
+                    <button onclick="changeMonth(-1)">《</button>
+                    <span class="month-title" id="calendarMonthTitle">--年 --月</span>
+                    <button onclick="changeMonth(1)">》</button>
+                </div>
+            </div>
+            <div id="calendarGridContainer" style="min-height: 80px; display:flex; justify-content:center; align-items:center; color:var(--text-muted);">等待数据...</div>
+        </div>
+    </div>
+
+    <script>
+        let myChart = echarts.init(document.getElementById('equityChart'), 'dark');
+        let globalRawRows = [];
+        let globalDailyPLMap = {};
+        let currentCalendarDate = new Date();
+
+        myChart.setOption({
+            grid: { top: 30, bottom: 25, left: 50, right: 20 },
+            xAxis: { 
+                type: 'category',
+                axisLabel: { 
+                    color: '#8b949e',
+                    interval: (index, value) => {
+                        if (index === 0) return true;
+                        return value !== myChart.getModel().get('xAxis')[0].data[index - 1];
+                    }
+                },
+                splitLine: { show: false }
+            },
+            yAxis: { 
+                type: 'value', 
+                min: 0,
+                splitLine: { lineStyle: { color: 'rgba(255,255,255,0.05)' } },
+                axisLabel: { color: '#8b949e' }
+            },
+            legend: { show: false },
+            tooltip: {
+                trigger: 'axis',
+                backgroundColor: 'rgba(22,27,34,0.95)',
+                borderColor: '#30363d',
+                textStyle: { color: '#f0f6fc' },
+                formatter: function (params) {
+                    let p = params[0];
+                    return `<div style="font-weight:bold;margin-bottom:4px;">${p.name}</div>
+                            <div style="display:flex;justify-content:space-between;width:130px;">
+                                <span>当前资金</span>
+                                <span style="color:#2ea043;font-weight:bold;">$${p.data.toFixed(2)}</span>
+                            </div>`;
+                }
+            }
+        });
+
+        // ==========================================
+        // 【新增】：页面加载时自动拉取 GitHub 上的 data.csv
+        // ==========================================
+        window.onload = function() {
+            console.log("正在自动检测并加载远程 data.csv...");
+            fetch('data.csv')
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error("未找到 data.csv，请点击手动导入。");
+                    }
+                    return response.text();
+                })
+                .then(text => {
+                    Papa.parse(text, {
+                        header: true,
+                        skipEmptyLines: true,
+                        complete: function(results) {
+                            console.log("✅ 远程 data.csv 自动加载成功！");
+                            globalRawRows = results.data;
+                            applySettingsAndRender();
+                        }
+                    });
+                })
+                .catch(err => {
+                    console.log("⚠️ " + err.message);
+                });
+        };
+
+        // 手动导入接口
+        function handleFileSelect(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                Papa.parse(e.target.result, {
+                    header: true, skipEmptyLines: true,
+                    complete: function(results) { globalRawRows = results.data; applySettingsAndRender(); }
+                });
+            };
+            reader.readAsText(file);
+        }
+
+        function applySettingsAndRender() {
+            if(globalRawRows.length === 0) return;
+            const initialCap = parseFloat(document.getElementById('initCapital').value) || 10000;
+
+            const colDate = globalRawRows[0]?.DT ? 'DT' : 'Date';
+            const colPL = globalRawRows[0]?.ProfitLoss ? 'ProfitLoss' : 'P&L';
+            if(!colDate || !colPL) { alert("未找到日期或盈亏列"); return; }
+
+            let totalPL = 0, wins = 0, losses = 0, totalWinsSum = 0, totalLossesSum = 0;
+            let currentBalance = initialCap, maxBalance = initialCap, minDrawdown = 0;
+            let xAxisData = [], yAxisData = [];
+            let dailyPLMap = {};
+            let minDate = null, maxDate = null;
+
+            const sortedRows = globalRawRows.filter(r => r[colDate] && r[colPL] !== '').sort((a, b) => new Date(a[colDate]) - new Date(b[colDate]));
+
+            sortedRows.forEach(row => {
+                const pl = parseFloat(row[colPL]);
+                if (isNaN(pl)) return;
+                totalPL += pl;
+                currentBalance += pl;
+                if(pl > 0) { wins++; totalWinsSum += pl; } else { losses++; totalLossesSum += Math.abs(pl); }
+
+                if(currentBalance > maxBalance) maxBalance = currentBalance;
+                let drawdown = currentBalance - maxBalance;
+                if(drawdown < minDrawdown) minDrawdown = drawdown;
+
+                const dateObj = new Date(row[colDate]);
+                if(!minDate) minDate = dateObj; maxDate = dateObj;
+
+                xAxisData.push(`${dateObj.getMonth()+1}/${dateObj.getDate()}`);
+                yAxisData.push(currentBalance);
+
+                const fullDateStr = `${dateObj.getFullYear()}-${String(dateObj.getMonth()+1).padStart(2,'0')}-${String(dateObj.getDate()).padStart(2,'0')}`;
+                if(!dailyPLMap[fullDateStr]) dailyPLMap[fullDateStr] = 0;
+                dailyPLMap[fullDateStr] += pl;
+            });
+
+            const totalTrades = wins + losses;
+            const winRate = totalTrades > 0 ? (wins / totalTrades * 100) : 0;
+            const profitFactor = totalLossesSum !== 0 ? (totalWinsSum / totalLossesSum) : (totalPL > 0 ? 999 : 0);
+            const avgWin = wins > 0 ? (totalWinsSum / wins) : 0;
+            const avgLoss = losses > 0 ? (totalLossesSum / losses) : 1;
+            const riskReward = avgWin / avgLoss;
+            
+            const dailyReturns = Object.values(dailyPLMap);
+            let sharpeRatio = 0;
+            if (dailyReturns.length > 1) {
+                const avgDaily = dailyReturns.reduce((a,b) => a+b, 0) / dailyReturns.length;
+                const variance = dailyReturns.reduce((acc, val) => acc + Math.pow(val - avgDaily, 2), 0) / dailyReturns.length;
+                const stdDev = Math.sqrt(variance);
+                if (stdDev !== 0) sharpeRatio = (avgDaily / stdDev) * Math.sqrt(252);
+            }
+
+            document.getElementById('card_totalPL').innerText = (totalPL >= 0 ? '+' : '') + totalPL.toFixed(2);
+            document.getElementById('card_balance').innerText = `当前资金: $${currentBalance.toFixed(2)}`;
+            document.getElementById('card_winRate').innerText = winRate.toFixed(1) + '%';
+            document.getElementById('card_winLose').innerText = `${wins}盈 / ${losses}亏`;
+            document.getElementById('card_totalTrades').innerText = totalTrades;
+            document.getElementById('card_days').innerText = `共 ${totalTrades} 笔`;
+            document.getElementById('card_profitFactor').innerText = profitFactor.toFixed(2) + 'x';
+            document.getElementById('card_perTrade').innerText = `平均盈亏 $${totalTrades > 0 ? (totalPL / totalTrades).toFixed(2) : '0.00'}`;
+            document.getElementById('card_riskReward').innerText = riskReward.toFixed(2) + ':1';
+            document.getElementById('card_sharpe').innerText = sharpeRatio.toFixed(2);
+
+            document.getElementById('stat_net').innerText = totalPL >= 0 ? `+${totalPL.toFixed(2)}` : `${totalPL.toFixed(2)}`;
+            document.getElementById('stat_peak').innerText = `$${maxBalance.toFixed(2)}`;
+            document.getElementById('stat_dip').innerText = `$${minDrawdown.toFixed(2)}`;
+
+            document.getElementById('chart_trades').innerText = totalTrades;
+            if(minDate) document.getElementById('chart_period').innerText = `${minDate.getMonth()+1}/${minDate.getDate()} – ${maxDate.getMonth()+1}/${maxDate.getDate()}`;
+
+            myChart.setOption({
+                xAxis: { data: xAxisData },
+                series: [{
+                    type: 'line', 
+                    smooth: 0.4,
+                    symbol: 'none',
+                    lineStyle: { width: 2.5, color: '#2ea043' },
+                    areaStyle: {
+                        color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
+                            { offset: 0, color: 'rgba(46, 160, 67, 0.5)' },
+                            { offset: 1, color: 'rgba(46, 160, 67, 0)' }
+                        ])
+                    },
+                    data: yAxisData,
+                    markLine: {
+                        symbol: ['none', 'none'],
+                        label: { formatter: `初始资金 $${initialCap}`, position: 'insideEndTop', color: '#fff' },
+                        data: [{ yAxis: initialCap }],
+                        lineStyle: { color: '#f0f6fc', type: 'dashed', width: 1.5 }
+                    }
+                }]
+            });
+
+            globalDailyPLMap = dailyPLMap;
+            currentCalendarDate = new Date(Object.keys(globalDailyPLMap).sort()[0]);
+            renderCalendar(currentCalendarDate);
+        }
+
+        function toggleFullScreen() {
+            const container = document.getElementById('chartContainer');
+            const btn = document.getElementById('fullscreenToggle');
+            container.classList.toggle('fullscreen');
+            if (container.classList.contains('fullscreen')) {
+                btn.innerText = '✕ 关闭全屏';
+                setTimeout(() => myChart.resize(), 200);
+            } else {
+                btn.innerText = '⛶ 全屏放大';
+                setTimeout(() => myChart.resize(), 200);
+            }
+        }
+
+        function renderCalendar(dateObj) {
+            const year = dateObj.getFullYear(), month = dateObj.getMonth();
+            const monthNames = ["一月","二月","三月","四月","五月","六月","七月","八月","九月","十月","十一月","十二月"];
+            document.getElementById('calendarMonthTitle').innerText = `${year}年 ${monthNames[month]}`;
+
+            let html = `<div class="calendar-grid">`, startOffset = new Date(year, month, 1).getDay() - 1;
+            if (startOffset < 0) startOffset = 6;
+            ['周一','周二','周三','周四','周五','周六','周日'].forEach(w => html += `<div class="cal-weekday">${w}</div>`);
+            for(let i=0; i<startOffset; i++) html += `<div class="cal-cell empty"></div>`;
+            for(let d=1; d<=new Date(year, month + 1, 0).getDate(); d++) {
+                const dateKey = `${year}-${String(month+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+                const hasData = globalDailyPLMap.hasOwnProperty(dateKey);
+                const pl = hasData ? globalDailyPLMap[dateKey] : 0;
+                html += `<div class="cal-cell${hasData ? (pl>=0?' green':' red') : ' empty'}"><div class="day">${d}</div><div class="amount">${hasData ? `$${pl>0?'+':''}${pl.toFixed(0)}` : '—'}</div></div>`;
+            }
+            document.getElementById('calendarGridContainer').innerHTML = html + `</div>`;
+        }
+
+        function changeMonth(step) {
+            if(Object.keys(globalDailyPLMap).length === 0) return;
+            currentCalendarDate = new Date(currentCalendarDate.getFullYear(), currentCalendarDate.getMonth() + step, 1);
+            renderCalendar(currentCalendarDate);
+        }
+        window.addEventListener('resize', () => { myChart.resize(); });
+    </script>
+</body>
+</html>
